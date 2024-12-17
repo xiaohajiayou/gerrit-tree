@@ -13,3 +13,6 @@ test/watch-*.txt
 gulp.1
 dist
 dist.zip
+dist.7z
+dist.crx
+dist.pem

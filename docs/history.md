@@ -14,8 +14,8 @@
 1. support all potential gitlab service
 
 ### v1.3
-1. support hotkey `[` to open or close gitlab-tree sidebar
-2. add animation effects when toggle gitlab-tree sidebar
+1. support hotkey `[` to open or close gerrit-tree sidebar
+2. add animation effects when toggle gerrit-tree sidebar
 
 ### v1.4 (not release)
 1. optimized code, fix some potential bugs

@@ -1,5 +1,5 @@
 {
-  "name": "gitlab-tree",
+  "name": "gerrit-tree",
   "version": "1.5.0",
   "description": "Chrome extension to display Gitlab code in tree format. Useful for developers who frequently read source in Gitlab and do not want to download or checkout too many repositories.",
   "directories": {
@@ -13,7 +13,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/FrankFan/gitlab-tree.git"
+    "url": "git+https://github.com/FrankFan/gerrit-tree.git"
   },
   "keywords": [
     "git",
@@ -21,26 +21,24 @@
     "tree",
     "gitlab tree"
   ],
-
   "overrides": {
     "graceful-fs": "^4.2.11"
   },
-
   "author": "fy98.com",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/FrankFan/gitlab-tree/issues"
+    "url": "https://github.com/FrankFan/gerrit-tree/issues"
   },
-  "homepage": "https://github.com/FrankFan/gitlab-tree",
+  "homepage": "https://github.com/FrankFan/gerrit-tree",
   "devDependencies": {
     "del": "^1.2.0",
     "gulp": "^3.9.1",
     "gulp-clean-css": "^2.0.13",
     "gulp-concat": "^2.5.2",
     "gulp-htmlmin": "^3.0.0",
+    "gulp-sourcemaps": "^3.0.0",
     "gulp-stats": "^0.0.3",
     "gulp-uglify": "^2.0.0",
     "mocha": "^5.0.4"
   }
-
 }
