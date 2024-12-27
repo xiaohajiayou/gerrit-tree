@@ -1,81 +1,663 @@
-window.onload = function() {
-  console.log('Starting GitlabTree plugin...');
+      // 构建树状结构
+      var buildTree = function(files) {
+        var tree = {};
+        Object.keys(files).forEach(function(file) {
+            var isDirectory = file.endsWith('/')
+            var parts = file.split("/"),
+                current = tree;
+            var lastIndex = parts.length - 1;
+            parts.forEach(function(part, index) {
+                // 确保当前部分存在，如果不存在则初始化为对象
+                current[part] = current[part] || { text: part, icon: 'fa fa-folder-open' };
+    
+                // 如果不是最后一个部分，确保它有 'children' 属性
+                if (index < parts.length - 1) {
+                    current[part].children = current[part].children || {};
+                    current = current[part].children;
+                } else {
+                    // 最后一个部分，如果是文件则设置 'fa fa-file' 图标
+                    if (!isDirectory) {
+                        current[part].icon = 'fa fa-file-medical';
+                    }
+                    current = current[part];
+                }
+            });
+        });
+        return tree;
+    };
 
-  // 创建容器
-  var treeContainer = document.createElement('div');
-  treeContainer.id = 'fileTree';
-  treeContainer.textContent = 'File Tree Container';
-  treeContainer.style.cssText = 'width: 200px; overflow: auto; background-color: #f4f4f4; z-index: 1000; border: 2px solid red;';
+    function convertToJsTreeFormat(data) {
+        var result = [];
+    
+        function buildNode(node, parent) {
+            var jsTreeNode = {
+                text: node.text,
+                icon: node.icon,
+                state: { opened: node.children && Object.keys(node.children).length > 0 ? true : false }
+            };
+            if (node.children) {
+                jsTreeNode.children = [];
+                for (var key in node.children) {
+                    buildNode(node.children[key], jsTreeNode);
+                }
+            }
+            if (parent) {
+                parent.children.push(jsTreeNode);
+            } else {
+                result.push(jsTreeNode);
+            }
+        }
+    
+        for (var key in data) {
+            buildNode({ text: key, icon: data[key].icon, children: data[key].children || {} }, null);
+        }
+    
+        return result;
+    }
 
-  // 设置 body 为 flex 容器
-  document.body.style.cssText = 'display: flex; flex-direction: row;';
+    var generateTreeNodes = function(tree) {
+        var nodesDisplay = [];
+        // 递归函数，用于将树转换为节点数组
+        function buildNodesArray(currentNode) {
+        Object.keys(currentNode).forEach(function(key) {
+            var singleObj = {};
+            singleObj.text = key;
+            if (typeof currentNode[key] === 'object' && currentNode[key] !== null && !Array.isArray(currentNode[key])) {
+            singleObj.children = [];
+            // singleObj.data = 'tree';
+            singleObj.icon = 'fa fa-folder-open';
+            singleObj.children = buildNodesArray(currentNode[key]); // 递归构建子节点
+            } else {
+            singleObj.icon = 'fa fa-file-medical';
+            singleObj.data = 'blob';
+            }
+            nodesDisplay.push(singleObj);
+        });
+        }
+        buildNodesArray(tree);
+        return nodesDisplay;
+    };
 
-  // 插入容器到 DOM
-  document.body.insertBefore(treeContainer, document.body.firstChild);
+    
+    var getLocalStorageData = function() {
+        var strClickedDir = localStorage.getItem('loadedDirs');
+        var lastElement;
+        var arrClickedDir = strClickedDir && strClickedDir.split(',') || [];
+        if (arrClickedDir.length > 0) {
+        lastElement = arrClickedDir[arrClickedDir.length - 1] || '';
+        }
+        return {
+        lastElement: lastElement,
+        arrAllLoadedDirs: arrClickedDir,
+        }
+    }
 
-  console.log('Container inserted into DOM:', document.getElementById('fileTree') !== null);
+    var setLocalStorageData = function(str) {
+        if (str.length === 0) {
+        return;
+        } else {
+        localStorage.setItem('loadedDirs', str);
+        }
+    }
 
-  // 构建树状结构
-  var buildTree = function(files) {
-      var tree = {};
-      Object.keys(files).forEach(function(file) {
-          var parts = file.split("/"),
-              current = tree;
-          parts.forEach(function(part) {
-              current[part] = current[part] || {};
-              current = current[part];
-          });
-      });
-      return tree;
-  };
+    var createGitlabTreeContainer = function(repo,branch) {
+        var htmlTemplate = 
+        '<div class="scrollable-container" >'+
+            '<div class="gitlab-tree">' +
+                '<header>' +
+                    '<div  class="head-container">' +
+                        '<div id = "repo" class="info-container center-item">' +  // 新增容器用于居中
+                            '<i class="fa fa-home " style = "margin-right: 15px"></i>' +
+                            '<span class="info-link">Home</span>' +  // 添加链接文本
+                        '</div>' +
+                        '<div id = "branch"  class="branch-container center-item">' +  // 新增容器用于居中
+                            '<i class="fa fa-code-branch " style = "margin-right: 15px"></i>' +
+                            '<span class="branch">master</span>' +  // 假设默认分支为master
+                        '</div>' +
+                    '</div>' +
+                    '<a class="gerrit-tree-toggle  " >' +
+                        '<i class="fa fa-angle-left"></i>' +
+                    '</a>'+
+                '</header>'+
+                '<nav></nav>'+
+            '</div>'+
+        '</div>';
 
-  // 构建 HTML 树状结构
-  var buildHtmlTree = function(tree, parent) {
-      var ul = document.createElement('ul');
-      Object.keys(tree).forEach(function(key) {
-          var li = document.createElement('li'),
-              item = tree[key];
-          if (typeof item === "object" && !Array.isArray(item)) {
-              li.innerHTML = '<a href="javascript:void(0)">' + key + '</a>';
-              buildHtmlTree(item, li);
-          } else {
-              li.innerHTML = '<a href="javascript:void(0)">' + key + '</a>';
-          }
-          ul.appendChild(li);
-      });
-      parent.appendChild(ul);
-  };
 
-  // 弹出输入框让用户输入 URL
-  var userInputUrl = prompt("Please enter the URL to fetch data:", "http://example.com");
-  if (userInputUrl) {
-      // 发送 AJAX 请求获取数据
-      var xhr = new XMLHttpRequest();
-      xhr.open('GET', userInputUrl, true);
-      xhr.onreadystatechange = function() {
-          if (xhr.readyState === 4) {
-              if (xhr.status === 200) {
-                  try {
-                      var cleanedData = xhr.responseText.substring(5),
-                          jsonData = JSON.parse(cleanedData);
-                      console.log('Received data:', jsonData);
-                      var fileTree = buildTree(jsonData);
-                      buildHtmlTree(fileTree, treeContainer);
-                      console.log('Tree built and inserted into DOM.');
-                  } catch (e) {
-                      console.error("Error parsing JSON:", e);
-                      // 在请求失败时，给出用户反馈
-                      treeContainer.innerHTML += '<p>Error parsing data. Please check the URL and try again.</p>';
-                  }
-              } else {
-                  console.error("Error fetching data:", xhr.statusText);
-                  // 在请求失败时，给出用户反馈
-                  treeContainer.innerHTML += '<p>Error fetching data. Please check the URL and try again.</p>';
-              }
-          }
-      };
-      xhr.send();
-  } else {
-      console.log("No URL entered by the user.");
+        // htmlTemplate += '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">';
+        
+        // 设置 body 的样式为 flex 容器
+        $('body').css({
+            'display': 'grid',
+            'gridTemplateColumns': 'auto 1fr', // 第一列自动调整，第二列填充剩余空间
+
+        });
+
+        // 设置 .app 的样式，使其占据所有剩余空间
+        $('.app').css({
+            'gridColumn': '2' // 将 app 元素放在第二列
+        });
+
+        $('.scrollable-container').css({
+            'gridColumn': '1' // 将 app 元素放在第二列
+        });
+
+        $('body').prepend(htmlTemplate);
+        $('#repo').find('.info-link').text(repo); // 替换 'New Home 
+        $('#branch').find('.branch').text(branch); // 替换 'New 
+        // 设置'#repo'元素中的'.info-link'的字体大小
+        $('#repo').find('.info-link').css('font-size', '15px'); // 您可以根据需要调整字体大小
+
+        // 设置'#branch'元素中的'.branch'的字体大小
+        $('#branch').find('.branch').css('font-size', '15px'); // 您可以根据需要调整字体大小
+
+        // 创建一个 link 元素用于加载 CSS
+        var link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.type = 'text/css';
+        // 使用 chrome.runtime.getURL 获取扩展程序资源的 URL
+        link.href = chrome.runtime.getURL('libs/Font-Awesome/css/all.min.css');
+        document.head.appendChild(link);
+   
+        $('.gerrit-tree-toggle').on('click', function() {
+            hideGitlabTree();
+        });
+
+
+
+        
+    }
+
+    var createGitlabTree = function(result) {
+        var tree = buildTree(result); // 构建树状结构
+        var treeData = convertToJsTreeFormat(tree); // 生成节点数组
+
+        $('.gitlab-tree nav').css({
+            'overflow-y': 'auto', // 允许垂直滚动
+            'height': 'auto', // 或者设置一个固定高度
+            'max-height': '1000px' // 设置最大高度，超过则出现滚动条
+        });
+        $jstree = $('.gitlab-tree nav')
+            .jstree({
+            'core': {
+                'themes': {
+                    'name': 'default', // 指定自定义主题的名称
+                    'responsive': false
+                },
+                'data': treeData,
+                'check_callback': true,
+                'dblclick_toggle': false,
+            },
+            plugins: []
+            })
+            .on('ready.jstree', function(event, data) {
+            handleRefresh();
+            });
+
+
+    }
+    var handleToggleBtn = function() {
+        $('.gitlab-tree header a.toggle-btn').on('click', function() {
+            hideGitlabTree();
+            createBtn();
+        });
+    }
+
+
+    
+  var clickNode = function() {
+    $jstree.on("select_node.jstree", function(e, data) {
+
+        var filePathToMatch = getClickedPath(data).filePath;
+        console.log('No matching file row found for:', filePathToMatch);
+
+        // // 1. 定位文件列表容器
+        // var fileListContainer = document.querySelector('#container');
+
+        // // 2. 查找所有文件行
+        // var fileRows = fileListContainer.querySelectorAll('.file-row');
+        // 使用jQuery选择器找到特定的元素
+        // 首先，获取最外层的 Shadow DOM 的根元素
+        var root = document.querySelector("#app").shadowRoot;
+
+
+        // 从最外层的 Shadow DOM 开始，逐层深入到包含文件列表的 Shadow DOM
+        var fileListShadowRoot = root.querySelector("#app-element").shadowRoot.querySelector("main > gr-change-view").shadowRoot.querySelector("#fileList").shadowRoot;
+
+        // 在文件列表的 Shadow DOM 中查找所有匹配的 div 元素
+        var fileRows = fileListShadowRoot.querySelectorAll("div[data-file]");
+        console.log('No matching file row found for:', fileRows);
+        // 遍历所有文件行，找到匹配特定文件路径的 div
+        fileRows.forEach(function(fileRow) {
+            // 存储原始的 display 属性值
+            var originalDisplay = fileRow.style.display;
+            // 获取 data-file 属性的值
+            var dataFile = fileRow.dataset.file;
+            
+            // 解析 JSON 字符串，以便比较文件路径
+            var fileData = JSON.parse(dataFile);
+            
+            // 检查文件路径是否匹配
+            if (fileData.path === filePathToMatch) {
+                // 将 fileRow 设为可见
+                fileRow.style.display = 'flex'; // 或者 'inline', 'inline-block' 等，取决于元素的原始 display 属性
+                // 如果匹配，找到该 div 下的 .show-hide 元素
+                var showHideElement = fileRow.querySelector(".show-hide");
+                
+                // 如果找到了 .show-hide 元素，执行点击操作
+                if (showHideElement) {
+                    showHideElement.click();
+                }
+            }else {
+                // 将 fileRow 设为不可见
+                fileRow.style.display = 'none';
+                if (fileRow.classList.contains('expanded')) {
+                    // 如果匹配，找到该 div 下的 .show-hide 元素
+                var showHideElement = fileRow.querySelector(".show-hide");
+                
+                // 如果找到了 .show-hide 元素，执行点击操作
+                if (showHideElement) {
+                    showHideElement.click();
+                }
+            }
+            }
+        });
+
+      }
+    );
+
   }
-};
+
+  var getClickedPath = function(data) {
+    var path = data.node.text + '/';
+    var arrParents = data.node.parents;
+
+    // data.node.parents ["j1_13", "j1_3", "#"]
+    arrParents.forEach(function(item) {
+      if (item !== '#') {
+        var tmpText = $jstree.jstree(true).get_text(item);
+        path += tmpText + '/';
+      }
+    });
+
+    path = revertPath(path);
+
+    // http://gitlab.xxx.com /   mobile/m-web           /blob/   master            /     src/main/webapp/resource/loader.js
+    // var href = originUrl + '/' + path_with_namespace + '/blob/' + repository_ref + '/' + path;
+
+    return {
+      filePath: path,
+    };
+  }
+
+  var revertPath = function(revertedPathString) {
+    var retString = '';
+    var arrString = revertedPathString.split('/');
+
+    // 1 删除空元素
+    arrString.forEach(function(item, index) {
+      if (item === '') {
+        removeElement(index, arrString);
+      }
+    });
+
+    // 2.倒序排列
+    for (var i = arrString.length - 1; i >= 0; i--) {
+      var item = arrString[i];
+      retString += item + '/';
+    };
+
+    // 3.去掉最后一个/
+    if (retString.substr(retString.length - 1) === '/') {
+      retString = retString.substr(0, retString.length - 1);
+    }
+
+    return retString;
+  }
+
+  var removeElement = function(index, array) {
+    if (index >= 0 && index < array.length) {
+      for (var i = index; i < array.length; i++) {
+        array[i] = array[i + 1];
+      }
+      array.length = array.length - 1;
+    }
+    return array;
+  }
+
+
+    var createBtn = function() {
+        if ($('.open-tree').length === 0) {
+            var htmlTemplate = 
+            '<div class="scrollable-open-tree" style="display: none;">'+
+                '<div class="open-tree ">'+
+                    '<header>' +
+                        '<a class="gerrit-tree-toggle  " >' +
+                            '<i class="fa fa-angle-right "></i>' +
+                        '</a>'+
+                    '</header>' +
+                '</div>'+
+            '</div>';
+
+            
+            // var htmlTemplate = '<div class="open-tree fa fa-angle-right" style="display: block; position: fixed; top: 10px; right: 10px; z-index: 1000; background-color: #f00;"></div>';
+            // if (isFilesTab()) {
+            $('body').prepend(htmlTemplate);
+            // }
+
+            $('.open-tree').on('click', function() {
+            showGitlabTree();
+            });
+        } else {
+            // if (isFilesTab()) {
+            $('.open-tree').show();
+            // }
+        }
+    }
+
+    var hideGitlabTree = function() {
+        $('.scrollable-container').css('display', 'none');
+        $('.scrollable-open-tree').css('display', 'block');
+    }
+
+    var showGitlabTree = function() {
+        // 显示 .scrollable-container 元素
+        $('.scrollable-container').css('display', 'block');
+        $('.scrollable-open-tree').css('display', 'none');
+    }
+
+    var cleanGitlabTree = function() {
+        // 删除 .scrollable-container 元素
+        $('.scrollable-container').remove();
+
+        // 删除 .scrollable-open-tree 元素
+        $('.scrollable-open-tree').remove();
+            // 重置 body 样式
+        $('body').css({
+            'display': '', // 移除 display 样式
+            'flexDirection': '' // 移除 flexDirection 样式
+        });
+    }
+
+
+
+    var showLoading = function() {
+        $('.loader').show();
+        $('.toggle-btn').removeClass('toggle-btn-color');
+    }
+
+    var hideLoading = function() {
+        $('.loader').hide();
+        $('.toggle-btn').addClass('toggle-btn-color');
+    }
+
+    var showSpinner = function() {
+        $('.open-tree')
+            .removeClass('fa fa-angle-right')
+            .addClass('busy')
+            .append('<i class="fa fa-spinner fa-spin"></i>');
+    }
+
+    var hideSpinner = function() {
+        $('.open-tree')
+            .addClass('fa fa-angle-right')
+            .removeClass('busy');
+        $('.open-tree i').removeClass('fa fa-spinner fa-spin');
+    }
+
+    var hotkey = function() {
+        $(document).keyup(function(e) {
+            // 219 [
+            if (e.keyCode === 219) {
+            toggleSideBar();
+            }
+        });
+    }
+
+    var toggleSideBar = function() {
+        // if ($('.gitlab-tree:visible').length > 0) {
+        //     hideGitlabTree();
+        // } else {
+        //     showGitlabTree();
+        // }
+    }
+
+
+
+
+    var createNodeById = function(nodesDisplay, nodeid) {
+        var cnode = $jstree.jstree(true).get_node(nodeid);
+        if (cnode.data === 'tree') {
+        nodesDisplay.forEach(function(item) {
+            var newNodeObj = $jstree.jstree(true).create_node(cnode, item, 'last', function(data) {
+            // console.log('new node created.');
+            // console.log(data);
+            });
+            $jstree.jstree(true).open_node(cnode);
+        });
+        } else {
+        console.log('cnode type is ' + cnode.data);
+        }
+    }
+
+    // src/main/webapp
+    // --------->
+    // ['src', 'src/main', 'src/main/webapp']
+    var makeRequestArr = function(str) {
+        var arr = [];
+        var arrSplited = str.split('/');
+        arr.push(arrSplited[0]);
+        arrSplited.reduce(function(prev, current, currentIndex){
+        var tmpValue =  prev + '/' + current;
+        arr.push(tmpValue);
+        return tmpValue;
+        });
+        return arr;
+    }
+    
+    // var handleRefresh = function() {
+    //     var lastElement = getLocalStorageData().lastElement || '';
+    //     var requestPath = lastElement ? makeRequestArr(lastElement) : [];
+    //     var promises = requestPath.map(function(path) {
+    //     return getResultJson(path);
+    //     });
+    //     Promise.all(promises)
+    //     .then(function(data) {
+    //         if (data.length > 0 && data[0].length > 0) {
+    //         data.forEach(function(item, index) {
+    //             var nodesDisplay = generateTreeNodes(item);
+    //             var cssSelector = (index === 0) ? '.jstree .jstree-container-ul li a' : '.jstree .jstree-container-ul li.jstree-open ul li';
+    //             expandSubTreeByJSON(cssSelector, requestPath, lastElement, nodesDisplay);
+    //             showGitlabTree();
+    //         });
+    //         } else {
+    //         $('.jstree .jstree-container-ul li a').each(function(index, item) {
+    //             var text = $(item).text().trim();
+    //             if (text === lastElement) {
+    //             $(this).parent().find('div.jstree-wholerow').addClass('jstree-wholerow-clicked');
+    //             }
+    //         });
+    //         showGitlabTree();
+    //         }
+    //     })
+    //     .catch(function(err) {
+    //         console.error(err);
+    //     });
+    // }
+
+    
+    var expandSubTreeByJSON = function(cssSelector, requestPath, lastElement, nodesDisplay) {
+        $(cssSelector).each(function (index, element) {
+        var nodeid;
+        var text = $(element).text().trim();
+        if (text === requestPath[0]) {
+            nodeid = $(this).parent().attr('id');
+            // $(this).parent().find('div.jstree-wholerow').addClass('jstree-wholerow-clicked');
+            createNodeById(nodesDisplay, nodeid);
+        } else if(lastElement.split('/').indexOf(text) > -1) {
+            nodeid = element.id;
+            $(this).find('div.jstree-wholerow').addClass('jstree-wholerow-clicked');
+            createNodeById(nodesDisplay, nodeid);
+        }
+        });
+    }
+
+    // 处理右侧gitlab的宽度
+    var hackStyle = function() {
+        // if (location.href.indexOf('gitlab.com') > -1) {
+        $('.sidebar-wrapper').hide();
+        $('.gitlab-tree').css('width', '230px');
+        $('header.navbar').css('margin-left', '230px');
+        // } else {
+        //   hideGitlabTree();
+        //   $('body').css('overflow', 'hidden');
+        // }
+
+        $('.breadcrumb').addClass('vh');
+    }
+
+    var handlePJAX = function() {
+        if ($.support.pjax) {
+        // $(document).on('pjax:complete', function() {
+        //   $('pre code').each(function(i, block) {
+        //     hljs.highlightBlock(block);
+        //   });
+        // });
+
+        $(document).on('pjax:start', function() {
+            NProgress.start();
+            showLoading();
+        });
+        $(document).on('pjax:end', function() {
+            NProgress.done();
+            hideLoading();
+
+            $('pre code').each(function(i, block) {
+            hljs.highlightBlock(block);
+            });
+        });
+        }
+    }
+
+    
+    function fetchAndProcessData(userInputUrl,repo,branch) {
+        $.ajax({
+            url: userInputUrl,
+            type: 'GET',
+            dataType: 'text', // 期望服务器返回文本格式
+            crossDomain: true, // 明确告诉 jQuery 发送跨域请求
+            success: function(data) {
+              try {
+                // 假设服务器返回的数据格式是 ")]}', followed by the actual JSON data"
+                // 我们需要移除前缀 ")]}'," 来获取正确的 JSON 字符串
+                var startIndex = data.indexOf('{');
+                var cleanedData = data.substring(startIndex);
+                var jsonData = JSON.parse(cleanedData);
+                console.log('Received data:', jsonData);
+                createBtn();
+                createGitlabTreeContainer(repo,branch);
+                createGitlabTree(jsonData);
+                clickNode();
+
+                // handleToggleBtn();
+                // hotkey();
+                // hackStyle();
+                console.log('Tree built and inserted into DOM.');
+              } catch (e) {
+                console.error("Error parsing JSON:", e);
+                // 在请求失败时，给出用户反馈
+                treeContainer.append('<p>Error parsing data. Please check the URL and try again.</p>');
+              }
+            },
+            error: function(xhr, status, error) {
+              console.error("Error fetching data:", error);
+              // 在请求失败时，给出用户反馈
+              treeContainer.append('<p>Error fetching data. Please check the URL and try again.</p>');
+            }
+          });
+    }
+
+
+    function refreshTree() {
+        console.log('Starting GitlabTree plugin...');
+
+        var currentUrl = window.location.href;
+        var match = currentUrl.match(/^(https?:\/\/[^\/\?#]+)(\/[^?#]*)?(\+\/(\d+))$/);
+        
+        if (match) {
+            var base = match[1]; // 基础 URL，例如 "http://192.168.107.128:8080"
+            var number = match[4]; // 数字，例如 "1"
+            console.log("Base URL:", base);
+            console.log("Number:", number);
+            // 确保基础 URL 以斜杠结尾
+            if (!base.endsWith('/')) {
+                base += '/';
+            }
+
+            // 拼接新的 URL
+            var newUrl = base + "changes/" + number;
+
+            console.log("New URL:", newUrl);
+            
+            $.ajax({
+                url: newUrl,
+                type: 'GET',
+                dataType: 'text', // 期望服务器返回文本格式
+                crossDomain: true, // 明确告诉 jQuery 发送跨域请求
+                success: function(data) {
+                try {
+                    // 假设服务器返回的数据格式是 ")]}', followed by the actual JSON data"
+                    // 我们需要移除前缀 ")]}'," 来获取正确的 JSON 字符串
+                    var startIndex = data.indexOf('{');
+                    var cleanedData = data.substring(startIndex);
+                    var jsonData = JSON.parse(cleanedData);
+                    console.log('Received data:', jsonData);
+                    // 提取 change_id 的值
+                    var changeId = jsonData.change_id;
+
+                    // 拼接 URL
+                    var pathUrl = base + "changes/" + changeId + "/revisions/current/files";
+                    fetchAndProcessData(pathUrl,jsonData.project,jsonData.branch);
+                    console.log("New URL:", pathUrl);
+
+                } catch (e) {
+                    console.error("Error parsing JSON:", e);
+                    // 在请求失败时，给出用户反馈
+                    treeContainer.append('<p>Error parsing data. Please check the URL and try again.</p>');
+                }
+                },
+                error: function(xhr, status, error) {
+                console.error("Error fetching data:", error);
+                // 在请求失败时，给出用户反馈
+                treeContainer.append('<p>Error fetching data. Please check the URL and try again.</p>');
+                }
+            });
+        } else {
+            console.log("URL does not match expected pattern.");
+        }
+    }
+
+
+$(document).ready(function() {
+
+    // 在页面加载时刷新树状结构
+    refreshTree();
+
+});
+
+// 存储上一个URL
+var previousUrl = window.location.href;
+
+// 定期检查URL是否变化
+setInterval(function() {
+    var currentUrl = window.location.href;
+    if (currentUrl !== previousUrl) {
+        previousUrl = currentUrl;
+        cleanGitlabTree();
+        refreshTree();
+    }
+}, 500); // 每1000毫秒检查一次
+
+
+
+

@@ -1,3 +1,83 @@
+.scrollable-container {
+    height: 100000px; /* 根据需要设置高度 */
+}
+.scrollable-open-tree {
+    height: 100000px; /* 根据需要设置高度 */
+}
+
+.gitlab-tree {
+    position: sticky; /* 粘性定位 */
+    top: 0; /* 距离顶部 10px 时开始粘住 */
+    margin-right: 5px;
+    z-index: 1;
+}
+.gitlab-tree header {
+    display: flex;
+    flex-direction: center; /* 使元素垂直排列 */
+    align-items: flex-start; /* 垂直排列时，从左侧开始 */
+    background-color: #252f3a; /* 深蓝色背景 */
+    padding: 5px;
+    color: white; /* 设置字体颜色为白色 */
+    opacity: 0.95; /* 设置透明度为 80% */
+    font-weight: bold; /* 设置字体为加粗 */
+}
+
+
+.head-container {
+    display: flex;
+    flex-direction: column; /* 使元素垂直排列 */
+    align-items: flex-start; /* 垂直排列时，从左侧开始 */
+    margin-right: 20px; /* 与按钮之间的间隔 */
+}
+.center-item {
+    display: flex;
+    align-items: center;
+    margin-left: 20px; /* 链接文字和图标之间的间隔 */
+    color: white; /* 确保子元素也继承白色字体 */
+}
+
+
+.gerrit-tree-toggle {
+    background-color: #007BFF; /* 按钮背景为蓝色 */
+    padding: 5px 10px ; /* 按钮内边距 */
+    border-radius: 5px; /* 圆角 */
+    color: white; /* 按钮文字颜色设置为白色 */
+    align-self: flex-end; /* 将按钮推到行的最右边 */
+    margin-left: auto; /* 自动向左外边距，将按钮推到右边 */
+    margin-right: 10px; /* 自动向左外边距，将按钮推到右边 */
+    margin-top: 5px; /* 自动向左外边距，将按钮推到右边 */
+    margin-bottom: 5px; /* 自动向左外边距，将按钮推到右边 */
+}
+
+.gerrit-tree-toggle:hover {
+    background-color: #0056b3; /* Darker background color on hover */
+  }
+
+.open-tree header{
+    display: flex;
+    flex-direction: center; /* 使元素垂直排列 */
+    align-items: flex-start; /* 垂直排列时，从左侧开始 */
+    background-color: #252f3a; /* 深蓝色背景 */
+    padding: 5px;
+    color: white; /* 设置字体颜色为白色 */
+    opacity: 0.95; /* 设置透明度为 80% */
+    font-weight: bold; /* 设置字体为加粗 */
+  }
+  .open-tree {
+    position: sticky; /* 粘性定位 */
+    top: 0; /* 距离顶部 10px 时开始粘住 */
+    margin-right: 5px;
+    z-index: 1;
+  }
+
+
+
+
+
+.fa {
+    filter: invert(30%);
+}
+
 #fileTree ul {
     list-style-type: none;
     margin: 0;

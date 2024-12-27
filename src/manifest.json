@@ -26,7 +26,14 @@
       "css": ["main.css",
               "libs/nprogress/nprogress.css",
               "libs/jstree/jstree.css"],
-      "run_at": "document_start"
+      "run_at": "document_end"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["libs/Font-Awesome/css/all.min.css",
+    "libs/Font-Awesome/webfonts/*"],
+      "matches": ["<all_urls>"]
     }
   ]
 }

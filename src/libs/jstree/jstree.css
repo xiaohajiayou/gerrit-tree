@@ -303,14 +303,18 @@
   transition: background-color 0.15s, box-shadow 0.15s;
 }
 .jstree-default .jstree-hovered {
-  background: #e7f4f9;
+  background: #dfe5e8;
   border-radius: 2px;
   box-shadow: inset 0 0 1px #cccccc;
+  color: #000; /* 保持文字颜色为黑色 */
+  /* opacity: 0.5; 添加透明度，这里是 80% 的不透明度 */
 }
 .jstree-default .jstree-clicked {
-  background: #beebff;
+  background: #dfe5e8;
   border-radius: 2px;
   box-shadow: inset 0 0 1px #999999;
+  color: #000; /* 保持文字颜色为黑色 */
+  /* opacity: 0.5; 添加透明度，这里是 80% 的不透明度 */
 }
 .jstree-default .jstree-no-icons .jstree-anchor > .jstree-themeicon {
   display: none;

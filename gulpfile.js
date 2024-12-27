@@ -8,7 +8,7 @@ var uglify = require('gulp-uglify');
 var paths = {
   srcRoot: 'src',
   scripts: ['/gitlabtree.js'],
-  css: '/main.css',
+  css: ['/main.css'],
   libs: '/libs',
   imgs: '/imgs',
   outputPath: 'dist'
@@ -59,10 +59,13 @@ gulp.task('uglify', function () {
 });
 
 gulp.task('minify-css', function() {
-  return gulp.src(paths.srcRoot + paths.css)
+  return gulp.src([
+    paths.srcRoot + paths.css
+  ], { base: paths.srcRoot }) // 保留原始路径结构
     .pipe(cleanCSS({compatibility: 'ie8'}))
     .pipe(gulp.dest(paths.outputPath));
 });
+
 
 // gulp.task('static', ['minify-css', 'uglify']);
 gulp.task('static', ['minify-css', 'uglify']);
