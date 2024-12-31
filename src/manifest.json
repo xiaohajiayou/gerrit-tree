@@ -3,15 +3,15 @@
   "version": "0.0.2",
   "manifest_version": 3,
   "author": "Hacode",
-  "description": "Chrome extension to display Gitlab code in tree format",
+  "description": "Chrome extension to display code diff on gerrit in tree format",
   "permissions": [
     "storage",
     "activeTab"
   ],
   "icons": {
-    "16": "imgs/gitlab.png",
-    "48": "imgs/gitlab.png",
-    "128": "imgs/gitlab.png"
+    "16": "imgs/gerrit.png",
+    "48": "imgs/gerrit.png",
+    "128": "imgs/gerrit.png"
   },
   "content_scripts": [
     {
@@ -22,7 +22,7 @@
              "libs/highlight/highlight.min.js",
              "libs/nprogress/nprogress.js",
              "libs/base64-js/base64js.min.js",
-             "gitlabtree.js"],
+             "gerrittree.js"],
       "css": ["main.css",
               "libs/nprogress/nprogress.css",
               "libs/jstree/jstree.css"],
@@ -31,8 +31,9 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["libs/Font-Awesome/css/all.min.css",
-    "libs/Font-Awesome/webfonts/*"],
+      "resources": [
+                    "libs/Font-Awesome/4.7.0/css/font-awesome.min.css",
+                    "libs/Font-Awesome/4.7.0/fonts/*"],
       "matches": ["<all_urls>"]
     }
   ]

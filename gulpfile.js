@@ -7,7 +7,7 @@ var uglify = require('gulp-uglify');
 
 var paths = {
   srcRoot: 'src',
-  scripts: ['/gitlabtree.js'],
+  scripts: ['/gerrittree.js'],
   css: ['/main.css'],
   libs: '/libs',
   imgs: '/imgs',

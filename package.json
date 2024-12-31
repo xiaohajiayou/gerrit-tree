@@ -1,7 +1,7 @@
 {
   "name": "gerrit-tree",
   "version": "1.5.0",
-  "description": "Chrome extension to display Gitlab code in tree format. Useful for developers who frequently read source in Gitlab and do not want to download or checkout too many repositories.",
+  "description": "Chrome extension to display gerrit code in tree format. Useful for developers who frequently read source in gerrit and do not want to download or checkout too many repositories.",
   "directories": {
     "doc": "docs",
     "test": "test",
@@ -17,9 +17,9 @@
   },
   "keywords": [
     "git",
-    "gitlab",
+    "gerrit",
     "tree",
-    "gitlab tree"
+    "gerrit tree"
   ],
   "overrides": {
     "graceful-fs": "^4.2.11"

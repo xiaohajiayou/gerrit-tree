@@ -17,7 +17,7 @@
                 } else {
                     // 最后一个部分，如果是文件则设置 'fa fa-file' 图标
                     if (!isDirectory) {
-                        current[part].icon = 'fa fa-file-medical';
+                        current[part].icon = 'fa fa-file-o';
                     }
                     current = current[part];
                 }
@@ -55,28 +55,60 @@
         return result;
     }
 
-    var generateTreeNodes = function(tree) {
-        var nodesDisplay = [];
-        // 递归函数，用于将树转换为节点数组
-        function buildNodesArray(currentNode) {
-        Object.keys(currentNode).forEach(function(key) {
-            var singleObj = {};
-            singleObj.text = key;
-            if (typeof currentNode[key] === 'object' && currentNode[key] !== null && !Array.isArray(currentNode[key])) {
-            singleObj.children = [];
-            // singleObj.data = 'tree';
-            singleObj.icon = 'fa fa-folder-open';
-            singleObj.children = buildNodesArray(currentNode[key]); // 递归构建子节点
-            } else {
-            singleObj.icon = 'fa fa-file-medical';
-            singleObj.data = 'blob';
-            }
-            nodesDisplay.push(singleObj);
+    
+    var createGerritTree = function(result) {
+        var tree = buildTree(result); // 构建树状结构
+        var treeData = convertToJsTreeFormat(tree); // 生成节点数组
+
+        $('.gerrit-tree nav').css({
+            'overflow-y': 'auto', // 允许垂直滚动
+            'height': 'auto', // 或者设置一个固定高度
+            'max-height': '1000px' // 设置最大高度，超过则出现滚动条
         });
-        }
-        buildNodesArray(tree);
-        return nodesDisplay;
-    };
+        $jstree = $('.gerrit-tree nav')
+            .jstree({
+            'core': {
+                'themes': {
+                    'name': 'default', // 指定自定义主题的名称
+                    'responsive': false
+                },
+                'data': treeData,
+                'check_callback': true,
+                'dblclick_toggle': false,
+            },
+            plugins: []
+            })
+            .on('ready.jstree', function(event, data) {
+            handleRefresh();
+            })
+            .on("open_node.jstree close_node.jstree", function (e, data) {
+                var node = data.node;
+                if (node.icon === 'fa fa-folder') {
+                    $.jstree.reference(data.node.id).set_icon(node, 'fa fa-folder-open');
+                } else if (node.icon === 'fa fa-folder-open') {
+                    $.jstree.reference(data.node.id).set_icon(node, 'fa fa-folder');
+                }
+            })
+            // 监听点击事件，实现单击切换节点状态
+            .on("click.jstree", ".jstree-anchor", function (e) {
+                // 阻止事件冒泡，避免触发其他事件
+                e.preventDefault();
+                // 获取点击的节点
+                var node = $jstree.jstree(true).get_node(this);
+                // 如果节点有子节点，即是一个目录节点
+                if (node.children && node.children.length) {
+                    // 判断节点当前状态并切换
+                    if ($jstree.jstree(true).is_closed(node)) {
+                        $jstree.jstree(true).open_node(node);
+                    } else {
+                        $jstree.jstree(true).close_node(node);
+                    }
+                }
+            });
+
+
+    }
+
 
     
     var getLocalStorageData = function() {
@@ -100,18 +132,18 @@
         }
     }
 
-    var createGitlabTreeContainer = function(repo,branch) {
+    var createGerritTreeContainer = function(repo,branch) {
         var htmlTemplate = 
         '<div class="scrollable-container" >'+
-            '<div class="gitlab-tree">' +
+            '<div class="gerrit-tree">' +
                 '<header>' +
                     '<div  class="head-container">' +
                         '<div id = "repo" class="info-container center-item">' +  // 新增容器用于居中
-                            '<i class="fa fa-home " style = "margin-right: 15px"></i>' +
+                            '<i class="fa fa-home " style = "margin-right: 5px"></i>' +
                             '<span class="info-link">Home</span>' +  // 添加链接文本
                         '</div>' +
                         '<div id = "branch"  class="branch-container center-item">' +  // 新增容器用于居中
-                            '<i class="fa fa-code-branch " style = "margin-right: 15px"></i>' +
+                            '<i class="fa fa-code-fork " style = "margin-right: 10px"></i>' +
                             '<span class="branch">master</span>' +  // 假设默认分支为master
                         '</div>' +
                     '</div>' +
@@ -124,8 +156,7 @@
         '</div>';
 
 
-        // htmlTemplate += '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">';
-        
+
         // 设置 body 的样式为 flex 容器
         $('body').css({
             'display': 'grid',
@@ -146,21 +177,22 @@
         $('#repo').find('.info-link').text(repo); // 替换 'New Home 
         $('#branch').find('.branch').text(branch); // 替换 'New 
         // 设置'#repo'元素中的'.info-link'的字体大小
-        $('#repo').find('.info-link').css('font-size', '15px'); // 您可以根据需要调整字体大小
+        $('#repo').find('.info-link').css('font-size', '14px'); // 您可以根据需要调整字体大小
 
         // 设置'#branch'元素中的'.branch'的字体大小
-        $('#branch').find('.branch').css('font-size', '15px'); // 您可以根据需要调整字体大小
+        $('#branch').find('.branch').css('font-size', '14px'); // 您可以根据需要调整字体大小
 
         // 创建一个 link 元素用于加载 CSS
         var link = document.createElement('link');
         link.rel = 'stylesheet';
         link.type = 'text/css';
         // 使用 chrome.runtime.getURL 获取扩展程序资源的 URL
-        link.href = chrome.runtime.getURL('libs/Font-Awesome/css/all.min.css');
+        // link.href = chrome.runtime.getURL('libs/Font-Awesome/5.15.1/css/all.min.css');
+        link.href = chrome.runtime.getURL('libs/Font-Awesome/4.7.0/css/font-awesome.min.css');
         document.head.appendChild(link);
    
         $('.gerrit-tree-toggle').on('click', function() {
-            hideGitlabTree();
+            hideGerritTree();
         });
 
 
@@ -168,37 +200,9 @@
         
     }
 
-    var createGitlabTree = function(result) {
-        var tree = buildTree(result); // 构建树状结构
-        var treeData = convertToJsTreeFormat(tree); // 生成节点数组
-
-        $('.gitlab-tree nav').css({
-            'overflow-y': 'auto', // 允许垂直滚动
-            'height': 'auto', // 或者设置一个固定高度
-            'max-height': '1000px' // 设置最大高度，超过则出现滚动条
-        });
-        $jstree = $('.gitlab-tree nav')
-            .jstree({
-            'core': {
-                'themes': {
-                    'name': 'default', // 指定自定义主题的名称
-                    'responsive': false
-                },
-                'data': treeData,
-                'check_callback': true,
-                'dblclick_toggle': false,
-            },
-            plugins: []
-            })
-            .on('ready.jstree', function(event, data) {
-            handleRefresh();
-            });
-
-
-    }
     var handleToggleBtn = function() {
-        $('.gitlab-tree header a.toggle-btn').on('click', function() {
-            hideGitlabTree();
+        $('.gerrit-tree header a.toggle-btn').on('click', function() {
+            hideGerritTree();
             createBtn();
         });
     }
@@ -282,9 +286,7 @@
 
     path = revertPath(path);
 
-    // http://gitlab.xxx.com /   mobile/m-web           /blob/   master            /     src/main/webapp/resource/loader.js
-    // var href = originUrl + '/' + path_with_namespace + '/blob/' + repository_ref + '/' + path;
-
+ 
     return {
       filePath: path,
     };
@@ -346,7 +348,7 @@
             // }
 
             $('.open-tree').on('click', function() {
-            showGitlabTree();
+            showGerritTree();
             });
         } else {
             // if (isFilesTab()) {
@@ -355,18 +357,18 @@
         }
     }
 
-    var hideGitlabTree = function() {
+    var hideGerritTree = function() {
         $('.scrollable-container').css('display', 'none');
         $('.scrollable-open-tree').css('display', 'block');
     }
 
-    var showGitlabTree = function() {
+    var showGerritTree = function() {
         // 显示 .scrollable-container 元素
         $('.scrollable-container').css('display', 'block');
         $('.scrollable-open-tree').css('display', 'none');
     }
 
-    var cleanGitlabTree = function() {
+    var cleanGerritTree = function() {
         // 删除 .scrollable-container 元素
         $('.scrollable-container').remove();
 
@@ -415,11 +417,7 @@
     }
 
     var toggleSideBar = function() {
-        // if ($('.gitlab-tree:visible').length > 0) {
-        //     hideGitlabTree();
-        // } else {
-        //     showGitlabTree();
-        // }
+
     }
 
 
@@ -455,35 +453,7 @@
         return arr;
     }
     
-    // var handleRefresh = function() {
-    //     var lastElement = getLocalStorageData().lastElement || '';
-    //     var requestPath = lastElement ? makeRequestArr(lastElement) : [];
-    //     var promises = requestPath.map(function(path) {
-    //     return getResultJson(path);
-    //     });
-    //     Promise.all(promises)
-    //     .then(function(data) {
-    //         if (data.length > 0 && data[0].length > 0) {
-    //         data.forEach(function(item, index) {
-    //             var nodesDisplay = generateTreeNodes(item);
-    //             var cssSelector = (index === 0) ? '.jstree .jstree-container-ul li a' : '.jstree .jstree-container-ul li.jstree-open ul li';
-    //             expandSubTreeByJSON(cssSelector, requestPath, lastElement, nodesDisplay);
-    //             showGitlabTree();
-    //         });
-    //         } else {
-    //         $('.jstree .jstree-container-ul li a').each(function(index, item) {
-    //             var text = $(item).text().trim();
-    //             if (text === lastElement) {
-    //             $(this).parent().find('div.jstree-wholerow').addClass('jstree-wholerow-clicked');
-    //             }
-    //         });
-    //         showGitlabTree();
-    //         }
-    //     })
-    //     .catch(function(err) {
-    //         console.error(err);
-    //     });
-    // }
+
 
     
     var expandSubTreeByJSON = function(cssSelector, requestPath, lastElement, nodesDisplay) {
@@ -502,16 +472,13 @@
         });
     }
 
-    // 处理右侧gitlab的宽度
+    // 处理右侧gerrit的宽度
     var hackStyle = function() {
-        // if (location.href.indexOf('gitlab.com') > -1) {
+
         $('.sidebar-wrapper').hide();
-        $('.gitlab-tree').css('width', '230px');
+        $('.gerrit-tree').css('width', '230px');
         $('header.navbar').css('margin-left', '230px');
-        // } else {
-        //   hideGitlabTree();
-        //   $('body').css('overflow', 'hidden');
-        // }
+
 
         $('.breadcrumb').addClass('vh');
     }
@@ -555,8 +522,8 @@
                 var jsonData = JSON.parse(cleanedData);
                 console.log('Received data:', jsonData);
                 createBtn();
-                createGitlabTreeContainer(repo,branch);
-                createGitlabTree(jsonData);
+                createGerritTreeContainer(repo,branch);
+                createGerritTree(jsonData);
                 clickNode();
 
                 // handleToggleBtn();
@@ -579,7 +546,7 @@
 
 
     function refreshTree() {
-        console.log('Starting GitlabTree plugin...');
+        console.log('Starting GerritTree plugin...');
 
         var currentUrl = window.location.href;
         var match = currentUrl.match(/^(https?:\/\/[^\/\?#]+)(\/[^?#]*)?(\+\/(\d+))$/);
@@ -653,10 +620,18 @@ setInterval(function() {
     var currentUrl = window.location.href;
     if (currentUrl !== previousUrl) {
         previousUrl = currentUrl;
-        cleanGitlabTree();
+        cleanGerritTree();
         refreshTree();
     }
 }, 500); // 每1000毫秒检查一次
+
+function adjustScrollableContainerHeight() {
+    var appHeight = $('.app').height(); // 获取.app的高度
+    $('.scrollable-container').height(appHeight); // 设置.scrollable-container的高度
+}
+
+// 在页面加载和resize事件时调用这个函数
+$(window).on('load resize', adjustScrollableContainerHeight);
 
 
 

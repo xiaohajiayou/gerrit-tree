@@ -3,13 +3,13 @@ document.getElementById('toggleButton').addEventListener('click', function() {
     chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
       chrome.scripting.executeScript({
         target: {tabId: tabs[0].id},
-        function: toggleGitlabTree
+        function: togglegerritTree
       });
     });
   });
   
-  function toggleGitlabTree() {
+  function togglegerritTree() {
     // 这里调用你的插件功能代码
-    console.log('Gitlab Tree toggled');
+    console.log('gerrit Tree toggled');
     // 你可以在这里调用你的插件功能代码
   }
