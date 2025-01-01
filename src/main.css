@@ -48,6 +48,7 @@
     margin-right: 10px; /* 自动向左外边距，将按钮推到右边 */
     margin-top: 5px; /* 自动向左外边距，将按钮推到右边 */
     margin-bottom: 5px; /* 自动向左外边距，将按钮推到右边 */
+    cursor: pointer;
 }
 
 .gerrit-tree-toggle:hover {
@@ -87,7 +88,10 @@
     color: #4699f1; /* 将颜色设置为蓝色 */
 }
 .fa-file-o {
-    color: #a7a4a4; /* 将颜色设置为蓝色 */
+    color: #757373; /* 将颜色设置为蓝色 */
+}
+.fa-file-text-o {
+    color: #757373; /* 将颜色设置为蓝色 */
 }
 
 #fileTree ul {
@@ -129,3 +133,4 @@
     text-decoration: none;
     color: #333;
 }
+

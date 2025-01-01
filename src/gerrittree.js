@@ -70,7 +70,8 @@
             'core': {
                 'themes': {
                     'name': 'default', // 指定自定义主题的名称
-                    'responsive': false
+                    'responsive': false,
+                    'dots': true // 关闭节点之间的连接线
                 },
                 'data': treeData,
                 'check_callback': true,
@@ -212,62 +213,70 @@
   var clickNode = function() {
     $jstree.on("select_node.jstree", function(e, data) {
 
-        var filePathToMatch = getClickedPath(data).filePath;
-        console.log('No matching file row found for:', filePathToMatch);
-
-        // // 1. 定位文件列表容器
-        // var fileListContainer = document.querySelector('#container');
-
-        // // 2. 查找所有文件行
-        // var fileRows = fileListContainer.querySelectorAll('.file-row');
-        // 使用jQuery选择器找到特定的元素
-        // 首先，获取最外层的 Shadow DOM 的根元素
-        var root = document.querySelector("#app").shadowRoot;
-
-
-        // 从最外层的 Shadow DOM 开始，逐层深入到包含文件列表的 Shadow DOM
-        var fileListShadowRoot = root.querySelector("#app-element").shadowRoot.querySelector("main > gr-change-view").shadowRoot.querySelector("#fileList").shadowRoot;
-
-        // 在文件列表的 Shadow DOM 中查找所有匹配的 div 元素
-        var fileRows = fileListShadowRoot.querySelectorAll("div[data-file]");
-        console.log('No matching file row found for:', fileRows);
-        // 遍历所有文件行，找到匹配特定文件路径的 div
-        fileRows.forEach(function(fileRow) {
-            // 存储原始的 display 属性值
-            var originalDisplay = fileRow.style.display;
-            // 获取 data-file 属性的值
-            var dataFile = fileRow.dataset.file;
+        if (data.node.children && data.node.children.length) {
+            console.log('Selected item is a directory:', data.node.text);
+        } else {
+            // 当节点被点击时，更改图标
+            var instance = $.jstree.reference(data.node);
+            instance.set_icon(data.node, 'fa fa-file-text-o');
             
-            // 解析 JSON 字符串，以便比较文件路径
-            var fileData = JSON.parse(dataFile);
-            
-            // 检查文件路径是否匹配
-            if (fileData.path === filePathToMatch) {
-                // 将 fileRow 设为可见
-                fileRow.style.display = 'flex'; // 或者 'inline', 'inline-block' 等，取决于元素的原始 display 属性
-                // 如果匹配，找到该 div 下的 .show-hide 元素
-                var showHideElement = fileRow.querySelector(".show-hide");
+            var filePathToMatch = getClickedPath(data).filePath;
+            console.log('No matching file row found for:', filePathToMatch);
+    
+            // // 1. 定位文件列表容器
+            // var fileListContainer = document.querySelector('#container');
+    
+            // // 2. 查找所有文件行
+            // var fileRows = fileListContainer.querySelectorAll('.file-row');
+            // 使用jQuery选择器找到特定的元素
+            // 首先，获取最外层的 Shadow DOM 的根元素
+            var root = document.querySelector("#app").shadowRoot;
+    
+    
+            // 从最外层的 Shadow DOM 开始，逐层深入到包含文件列表的 Shadow DOM
+            var fileListShadowRoot = root.querySelector("#app-element").shadowRoot.querySelector("main > gr-change-view").shadowRoot.querySelector("#fileList").shadowRoot;
+    
+            // 在文件列表的 Shadow DOM 中查找所有匹配的 div 元素
+            var fileRows = fileListShadowRoot.querySelectorAll("div[data-file]");
+            console.log('No matching file row found for:', fileRows);
+            // 遍历所有文件行，找到匹配特定文件路径的 div
+            fileRows.forEach(function(fileRow) {
+                // 存储原始的 display 属性值
+                var originalDisplay = fileRow.style.display;
+                // 获取 data-file 属性的值
+                var dataFile = fileRow.dataset.file;
                 
-                // 如果找到了 .show-hide 元素，执行点击操作
-                if (showHideElement) {
-                    showHideElement.click();
-                }
-            }else {
-                // 将 fileRow 设为不可见
-                fileRow.style.display = 'none';
-                if (fileRow.classList.contains('expanded')) {
+                // 解析 JSON 字符串，以便比较文件路径
+                var fileData = JSON.parse(dataFile);
+                
+                // 检查文件路径是否匹配
+                if (fileData.path === filePathToMatch) {
+                    // 将 fileRow 设为可见
+                    fileRow.style.display = 'flex'; // 或者 'inline', 'inline-block' 等，取决于元素的原始 display 属性
                     // 如果匹配，找到该 div 下的 .show-hide 元素
-                var showHideElement = fileRow.querySelector(".show-hide");
-                
-                // 如果找到了 .show-hide 元素，执行点击操作
-                if (showHideElement) {
-                    showHideElement.click();
+                    var showHideElement = fileRow.querySelector(".show-hide");
+                    
+                    // 如果找到了 .show-hide 元素，执行点击操作
+                    if (showHideElement) {
+                        showHideElement.click();
+                    }
+                }else {
+                    // 将 fileRow 设为不可见
+                    fileRow.style.display = 'none';
+                    if (fileRow.classList.contains('expanded')) {
+                        // 如果匹配，找到该 div 下的 .show-hide 元素
+                    var showHideElement = fileRow.querySelector(".show-hide");
+                    
+                    // 如果找到了 .show-hide 元素，执行点击操作
+                    if (showHideElement) {
+                        showHideElement.click();
+                    }
                 }
-            }
-            }
-        });
-
-      }
+                }
+            });
+    
+          }
+        }
     );
 
   }
