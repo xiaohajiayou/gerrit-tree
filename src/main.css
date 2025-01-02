@@ -1,12 +1,12 @@
 .scrollable-container {
-    /* height: 100vh; 使用视口高度的100% */
+    /* height: 100vh;  */
 }
 .scrollable-open-tree {
     /* height: 100vh; 使用视口高度的100% */
 }
 
 .gerrit-tree {
-    position: sticky; /* 粘性定位 */
+    position: sticky !important;  /* 粘性定位 */
     top: 0; /* 距离顶部 10px 时开始粘住 */
     margin-right: 5px;
     z-index: 1;
@@ -27,7 +27,7 @@
     display: flex;
     flex-direction: column; /* 使元素垂直排列 */
     align-items: flex-start; /* 垂直排列时，从左侧开始 */
-    margin-right: 5px; /* 与按钮之间的间隔 */
+    margin-right: 6px; /* 与按钮之间的间隔 */
 }
 .center-item {
     display: flex;
@@ -45,7 +45,7 @@
     color: white; /* 按钮文字颜色设置为白色 */
     align-self: flex-end; /* 将按钮推到行的最右边 */
     margin-left: auto; /* 自动向左外边距，将按钮推到右边 */
-    margin-right: 10px; /* 自动向左外边距，将按钮推到右边 */
+    margin-right: 1px; /* 自动向左外边距，将按钮推到右边 */
     margin-top: 5px; /* 自动向左外边距，将按钮推到右边 */
     margin-bottom: 5px; /* 自动向左外边距，将按钮推到右边 */
     cursor: pointer;
