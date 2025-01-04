@@ -1,7 +1,7 @@
 {
   "name": "gerrit tree",
   "version": "0.0.2",
-  "manifest_version": 3,
+  "manifest_version": 2,
   "author": "Hacode",
   "description": "Chrome extension to display code diff on gerrit in tree format",
   "permissions": [
@@ -30,11 +30,15 @@
     }
   ],
   "web_accessible_resources": [
-    {
-      "resources": [
-                    "libs/Font-Awesome/4.7.0/css/font-awesome.min.css",
-                    "libs/Font-Awesome/4.7.0/fonts/*"],
-      "matches": ["<all_urls>"]
-    }
+    "libs/Font-Awesome/4.7.0/css/font-awesome.min.css",
+    "libs/Font-Awesome/4.7.0/fonts/fontawesome-webfont.eot",
+    "libs/Font-Awesome/4.7.0/fonts/fontawesome-webfont.svg",
+    "libs/Font-Awesome/4.7.0/fonts/fontawesome-webfont.ttf",
+    "libs/Font-Awesome/4.7.0/fonts/fontawesome-webfont.woff",
+    "libs/Font-Awesome/4.7.0/fonts/fontawesome-webfont.woff2",
+    "libs/Font-Awesome/4.7.0/fonts/FontAwesome.otf"
   ]
+
 }
+
+
