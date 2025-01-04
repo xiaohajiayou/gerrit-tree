@@ -22,14 +22,7 @@ gulp.task('clean', function() {
   del([paths.outputPath]);
 });
 
-// gulp.task('build', ['static'], function() {
-//   var libsPath = paths.srcRoot + paths.libs + '/**/*';
-//   var imgPath = paths.srcRoot + paths.imgs + '/*.png';
-//   var manifestPath = paths.srcRoot + '/manifest.json';
-//   gulp.src([libsPath]).pipe(gulp.dest(paths.outputPath + paths.libs));
-//   gulp.src([imgPath]).pipe(gulp.dest(paths.outputPath + paths.imgs));
-//   return gulp.src([manifestPath]).pipe(gulp.dest(paths.outputPath));
-// });
+
 gulp.task('build', ['static'], function() {
   var libsPath = paths.srcRoot + paths.libs + '/**/*';
   var imgPath = paths.srcRoot + paths.imgs + '/*.png';
@@ -42,11 +35,11 @@ gulp.task('build', ['static'], function() {
 gulp.task('uglify', function () {
   var options = {
     // 是否混淆变量名
-    mangle: false,
+    mangle: true,
     // 压缩选项
     compress: {
-      drop_console: false, // 非常有用，上线前去掉console信息
-      drop_debugger: false // 去掉debugger调试语句
+      drop_console: true, // 非常有用，上线前去掉console信息
+      drop_debugger: true // 去掉debugger调试语句
     },
     // 是否不压缩(beautify)代码
     output: {
@@ -57,6 +50,25 @@ gulp.task('uglify', function () {
              .pipe(uglify(options))
              .pipe(gulp.dest(paths.outputPath));
 });
+
+// gulp.task('uglify', function () {
+//   var options = {
+//     // 是否混淆变量名
+//     mangle: false,
+//     // 压缩选项
+//     compress: {
+//       drop_console: false, // 非常有用，上线前去掉console信息
+//       drop_debugger: false // 去掉debugger调试语句
+//     },
+//     // 是否不压缩(beautify)代码
+//     output: {
+//       beautify: false
+//     }
+//   };
+//   return gulp.src(paths.srcRoot + paths.scripts)
+//              .pipe(uglify(options))
+//              .pipe(gulp.dest(paths.outputPath));
+// });
 
 gulp.task('minify-css', function() {
   return gulp.src([
