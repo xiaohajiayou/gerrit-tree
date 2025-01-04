@@ -63,7 +63,7 @@ var createGerritTree = function(result) {
     $('.gerrit-tree nav').css({
         'overflow-y': 'auto', // 允许垂直滚动
         'height': 'auto', // 或者设置一个固定高度
-        'max-height': '1000px' // 设置最大高度，超过则出现滚动条
+        'max-height': '800px' // 设置最大高度，超过则出现滚动条
     });
     $jstree = $('.gerrit-tree nav')
         .jstree({
@@ -154,22 +154,13 @@ var createGerritTreeContainer = function(repo,branch) {
         '</div>'+
     '</div>';
 
-
-
     // 设置 body 的样式为 flex 容器
     $('body').css({
-        'display': 'grid',
-        'gridTemplateColumns': 'auto 1fr', // 第一列自动调整，第二列填充剩余空间
+        'display': 'flex',
+        'flex-direction': 'row',
+        'height': '100%',
+        'width': '100%' /* 确保 body 与 html 一样宽 **/
 
-    });
-
-    // 设置 .app 的样式，使其占据所有剩余空间
-    $('#app').css({
-        'gridColumn': '2' // 将 app 元素放在第二列
-    });
-
-    $('.scrollable-container').css({
-        'gridColumn': '1' // 将 app 元素放在第二列
     });
 
     $('body').prepend(htmlTemplate);
@@ -205,17 +196,15 @@ var handleToggleBtn = function() {
 
 
 function adjustScrollableContainerHeight() {
-    var appHeight = $('#app').height(); // 获取.app的高度
+    var appElement = document.querySelector("#app").shadowRoot.querySelector("#app-element");
+    var appHeight = appElement.offsetHeight; // 获取.app-element的高度
     var treeHeight = $('.gerrit-tree').height(); // 获取.app的高度
     var margin = 10; // 设置余量为10px，你可以根据需要调整这个值
     // 确保 .gerrit-tree 保持粘性定位
     $('.gerrit-tree').css('position', 'sticky');
-    if (treeHeight < appHeight) {
-        $('.scrollable-container').height(appHeight ); // 设置.scrollable-container的高度
-    } else {
-        $('.scrollable-container').height(treeHeight ); // 设置.scrollable-container的高度
-        $('.gerrit-tree').height(treeHeight - margin); // 减去余量
-    }
+
+    $('.scrollable-container').height(appHeight ); // 设置.scrollable-container的高度
+    
 }
     
 var clickNode = function() {
@@ -273,13 +262,13 @@ var clickNode = function() {
                     fileRow.style.display = 'none';
                     if (fileRow.classList.contains('expanded')) {
                         // 如果匹配，找到该 div 下的 .show-hide 元素
-                    var showHideElement = fileRow.querySelector(".show-hide");
-                    
-                    // 如果找到了 .show-hide 元素，执行点击操作
-                    if (showHideElement) {
-                        showHideElement.click();
+                        var showHideElement = fileRow.querySelector(".show-hide");
+                        
+                        // 如果找到了 .show-hide 元素，执行点击操作
+                        if (showHideElement) {
+                            showHideElement.click();
+                        }
                     }
-                }
                 }
             });
 
@@ -287,6 +276,8 @@ var clickNode = function() {
 
             // 在这里调用 adjustScrollableContainerHeight 函数
             setTimeout(function() {
+                var appHeight = $('#app').height(); // 获取.app的高度
+                console.log(appHeight);
                 adjustScrollableContainerHeight();
             }, 300);
         }
@@ -631,6 +622,18 @@ $(document).ready(function() {
 
     // 在页面加载时刷新树状结构
     refreshTree();
+    var appElement = document.querySelector("#app").shadowRoot.querySelector("#app-element");
+    var appHeight = appElement.offsetHeight; // 获取.app-element的高度
+    // 设置定时器，定期检查 .app 的尺寸变化
+    setInterval(function() {
+        var currentAppHeight = document.querySelector("#app").shadowRoot.querySelector("#app-element").offsetHeight; // 获取当前 .app 的高度
+
+        // 检查高度是否有变化
+        if (currentAppHeight !== appHeight ) {
+            appHeight = currentAppHeight; // 更新 .app 的高度
+            adjustScrollableContainerHeight(); // 调整滚动容器的高度
+        }
+    }, 1000); // 每 500 毫秒检查一次
 
 });
 
@@ -645,7 +648,7 @@ setInterval(function() {
         cleanGerritTree();
         refreshTree();
     }
-}, 500); // 每1000毫秒检查一次
+}, 300); // 每1000毫秒检查一次
 
 
 

@@ -1,3 +1,14 @@
+
+/* 设置 #app 元素以扩展填满剩余空间 */
+#app {
+    flex-grow: 1;
+    flex-basis: 0; /* 初始宽度为 0，允许 #app 根据剩余空间增长 */
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+
 .scrollable-container {
     /* height: 100vh;  */
 }
