@@ -204,6 +204,8 @@ function adjustScrollableContainerHeight() {
     $('.gerrit-tree').css('position', 'sticky');
 
     $('.scrollable-container').height(appHeight ); // 设置.scrollable-container的高度
+    $('.scrollable-open-tree').height(appHeight ); // 设置.scrollable-container的高度
+
     
 }
     
