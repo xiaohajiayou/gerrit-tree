@@ -522,41 +522,63 @@ var handlePJAX = function() {
 }
 
 
-function fetchAndProcessData(userInputUrl,repo,branch) {
+function fetchAndProcessData(changeIdBasedtUrl, changeNumberBasedUrl, repo, branch, number) {
     $.ajax({
-        url: userInputUrl,
+        url: changeIdBasedtUrl,
         type: 'GET',
-        dataType: 'text', // 期望服务器返回文本格式
-        crossDomain: true, // 明确告诉 jQuery 发送跨域请求
+        dataType: 'text',
+        crossDomain: true,
         success: function(data) {
             try {
-            // 假设服务器返回的数据格式是 ")]}', followed by the actual JSON data"
-            // 我们需要移除前缀 ")]}'," 来获取正确的 JSON 字符串
-            var startIndex = data.indexOf('{');
-            var cleanedData = data.substring(startIndex);
-            var jsonData = JSON.parse(cleanedData);
-            console.log('Received data:', jsonData);
-            createBtn();
-            createGerritTreeContainer(repo,branch);
-            createGerritTree(jsonData);
-            clickNode();
-
-            // handleToggleBtn();
-            // hotkey();
-            // hackStyle();
-            console.log('Tree built and inserted into DOM.');
+                var startIndex = data.indexOf('{');
+                var cleanedData = data.substring(startIndex);
+                var jsonData = JSON.parse(cleanedData);
+                console.log('Received data:', jsonData);
+                createBtn();
+                createGerritTreeContainer(repo, branch);
+                createGerritTree(jsonData);
+                clickNode();
+                console.log('Tree built and inserted into DOM.');
             } catch (e) {
-            console.error("Error parsing JSON:", e);
-            // 在请求失败时，给出用户反馈
-            treeContainer.append('<p>Error parsing data. Please check the URL and try again.</p>');
+                console.error("Error parsing JSON:", e);
+                treeContainer.append('<p>Error parsing data. Please check the URL and try again.</p>');
             }
         },
         error: function(xhr, status, error) {
-            console.error("Error fetching data:", error);
-            // 在请求失败时，给出用户反馈
-            treeContainer.append('<p>Error fetching data. Please check the URL and try again.</p>');
+            if (xhr.status === 404) {
+                // 如果返回404错误，使用changeNumberBasedUrl重新发起请求
+                $.ajax({
+                    url: changeNumberBasedUrl,
+                    type: 'GET',
+                    dataType: 'text',
+                    crossDomain: true,
+                    success: function(data) {
+                        try {
+                            var startIndex = data.indexOf('{');
+                            var cleanedData = data.substring(startIndex);
+                            var jsonData = JSON.parse(cleanedData);
+                            console.log('Received data:', jsonData);
+                            createBtn();
+                            createGerritTreeContainer(repo, branch);
+                            createGerritTree(jsonData);
+                            clickNode();
+                            console.log('Tree built and inserted into DOM.');
+                        } catch (e) {
+                            console.error("Error parsing JSON:", e);
+                            treeContainer.append('<p>Error parsing data. Please check the URL and try again.</p>');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("Error fetching data:", error);
+                        treeContainer.append('<p>Error fetching data. Please check the URL and try again.</p>');
+                    }
+                });
+            } else {
+                console.error("Error fetching data:", error);
+                treeContainer.append('<p>Error fetching data. Please check the URL and try again.</p>');
+            }
         }
-        });
+    });
 }
 
 
@@ -599,7 +621,8 @@ function refreshTree() {
 
                 // 拼接 URL
                 var pathUrl = base + "changes/" + changeId + "/revisions/current/files";
-                fetchAndProcessData(pathUrl,jsonData.project,jsonData.branch);
+                var pathUr2 = base + "changes/" + number + "/revisions/current/files";
+                fetchAndProcessData(pathUrl,pathUr2,jsonData.project,jsonData.branch);
                 console.log("New URL:", pathUrl);
 
             } catch (e) {
