@@ -217,7 +217,18 @@ var clickNode = function() {
         } else {
             // 当节点被点击时，更改图标
             var instance = $.jstree.reference(data.node);
-            instance.set_icon(data.node, 'fa fa-file-text-o');
+            instance.set_icon(data.node, 'fa fa-calendar-check-o'); // 使用勾号图标
+
+            
+            // 获取节点的 DOM 元素
+            var nodeElement = instance.get_node(data.node);
+            var liElement = document.getElementById(nodeElement.id); // 获取节点的 li 元素
+
+
+            // 将文本颜色更改为绿色
+            if (liElement) {
+                liElement.style.color = 'rgba(0, 123, 255, 0.7)'; // 浅蓝色，透明度为 0.7
+            }
             
             var filePathToMatch = getClickedPath(data).filePath;
             console.log('No matching file row found for:', filePathToMatch);
@@ -252,25 +263,38 @@ var clickNode = function() {
                 if (fileData.path === filePathToMatch) {
                     // 将 fileRow 设为可见
                     fileRow.style.display = 'flex'; // 或者 'inline', 'inline-block' 等，取决于元素的原始 display 属性
-                    // 如果匹配，找到该 div 下的 .show-hide 元素
+                    
+                    // 找到该 div 下的 .show-hide 元素
                     var showHideElement = fileRow.querySelector(".show-hide");
                     
-                    // 如果找到了 .show-hide 元素，执行点击操作
-                    if (showHideElement) {
+                    // 检查文件是否已展开
+                    if (showHideElement && !fileRow.classList.contains('expanded')) {
+                        // 如果没有展开，执行点击操作
                         showHideElement.click();
                     }
+                    
+                    // 滚动到该文件行
+                    fileRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                    // 直接设置背景颜色为浅红色
+                    fileRow.style.backgroundColor = 'rgba(135, 206, 250, 0.5)'; // 亮蓝色
+
+                    // 在一段时间后恢复原来的背景颜色
+                    setTimeout(function() {
+                        fileRow.style.backgroundColor = ''; // 恢复原来的背景颜色
+                    }, 1500); // 2秒后移除高亮
                 }else {
-                    // 将 fileRow 设为不可见
-                    fileRow.style.display = 'none';
-                    if (fileRow.classList.contains('expanded')) {
-                        // 如果匹配，找到该 div 下的 .show-hide 元素
-                        var showHideElement = fileRow.querySelector(".show-hide");
+                    // // 将 fileRow 设为不可见
+                    // fileRow.style.display = 'none';
+                    // if (fileRow.classList.contains('expanded')) {
+                    //     // 如果匹配，找到该 div 下的 .show-hide 元素
+                    //     var showHideElement = fileRow.querySelector(".show-hide");
                         
-                        // 如果找到了 .show-hide 元素，执行点击操作
-                        if (showHideElement) {
-                            showHideElement.click();
-                        }
-                    }
+                    //     // 如果找到了 .show-hide 元素，执行点击操作
+                    //     if (showHideElement) {
+                    //         showHideElement.click();
+                    //     }
+                    // }
                 }
             });
 
